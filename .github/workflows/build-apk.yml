@@ -18,13 +18,13 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y libgtk-3-dev
     
-    - name: Set up Java
+    - name: Set up Java 17
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '11'
+        java-version: '17'
     
-    - name: Set up Flutter (older stable version)
+    - name: Set up Flutter (stable version)
       uses: subosito/flutter-action@v2
       with:
         flutter-version: '3.22.3'
@@ -38,7 +38,7 @@ jobs:
     - name: Accept Android licenses
       run: yes | flutter doctor --android-licenses
     
-    - name: Install older Flet version
+    - name: Install stable Flet version
       run: |
         python -m pip install --upgrade pip
         pip install flet==0.23.2
@@ -49,8 +49,31 @@ jobs:
         import flet as ft
         
         def main(page: ft.Page):
-            page.title = "Hello World"
-            page.add(ft.Text("Hello, World!"))
+            page.title = "Simple Calculator"
+            page.window_width = 300
+            page.window_height = 400
+            
+            result = ft.Text(value="0", size=20)
+            
+            def button_click(e):
+                result.value = f"Clicked: {e.control.text}"
+                page.update()
+            
+            page.add(
+                ft.Column([
+                    result,
+                    ft.Row([
+                        ft.ElevatedButton("1", on_click=button_click),
+                        ft.ElevatedButton("2", on_click=button_click),
+                        ft.ElevatedButton("3", on_click=button_click),
+                    ]),
+                    ft.Row([
+                        ft.ElevatedButton("4", on_click=button_click),
+                        ft.ElevatedButton("5", on_click=button_click),
+                        ft.ElevatedButton("6", on_click=button_click),
+                    ]),
+                ])
+            )
         
         if __name__ == "__main__":
             ft.app(target=main)
@@ -59,10 +82,8 @@ jobs:
     - name: Verify Flutter setup
       run: flutter doctor -v
     
-    - name: Build APK with compatibility settings
-      run: |
-        export JAVA_HOME=$JAVA_HOME_11_X64
-        flet build apk --no-rich-output
+    - name: Build APK
+      run: flet build apk --verbose
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
@@ -70,13 +91,3 @@ jobs:
         name: calculator-apk
         path: dist/*.apk
         retention-days: 30
-        
-    - name: Upload logs on failure
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-logs
-        path: |
-          *.log
-          .flet/
-        retention-days: 7
