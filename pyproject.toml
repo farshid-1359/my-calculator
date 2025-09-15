@@ -1,0 +1,10 @@
+[project]
+name = "calculator"
+version = "1.0.0"
+description = "Calculator App"
+dependencies = ["flet>=0.25.0"]
+
+[tool.flet.android]
+package = "com.example.calculator"
+name = "Calculator"
+
