@@ -30,8 +30,8 @@ jobs:
       with:
         python-version: '3.11'
     
-    - name: Accept Android licenses
-      run: flutter doctor --android-licenses
+    - name: Accept Android licenses automatically
+      run: yes | flutter doctor --android-licenses
     
     - name: Install Flet
       run: |
