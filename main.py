@@ -1,4 +1,6 @@
 import flet as ft
+import operator
+import re
 
 def main(page: ft.Page):
     page.title = "Calculator"
@@ -16,9 +18,53 @@ def main(page: ft.Page):
         text_align=ft.TextAlign.RIGHT,
         read_only=True,
         text_size=24,
-    border_color=ft.Colors.OUTLINE,
+        border_color=ft.colors.OUTLINE,
         height=80,
     )
+    
+    def calculate_expression(expression):
+        """Safe calculation without eval()"""
+        try:
+            # Remove spaces
+            expression = expression.replace(" ", "")
+            
+            # Basic validation
+            if not expression:
+                return 0
+                
+            # Simple parsing for basic operations
+            # This handles +, -, *, / operations
+            result = 0
+            current_number = ""
+            operation = "+"
+            
+            for char in expression + "+":  # Add + at end to process last number
+                if char in "+-*/":
+                    if current_number:
+                        num = float(current_number)
+                        if operation == "+":
+                            result += num
+                        elif operation == "-":
+                            result -= num
+                        elif operation == "*":
+                            result *= num
+                        elif operation == "/":
+                            if num != 0:
+                                result /= num
+                            else:
+                                raise ValueError("Division by zero")
+                    current_number = ""
+                    operation = char
+                else:
+                    current_number += char
+            
+            # Return integer if result is whole number
+            if result == int(result):
+                return int(result)
+            return round(result, 8)  # Limit decimal places
+            
+        except:
+            raise ValueError("Invalid expression")
     
     def on_button_press(e):
         nonlocal last_was_operator
@@ -27,14 +73,11 @@ def main(page: ft.Page):
         button_text = e.control.text
         
         if button_text == "C":
-            # Clear the display
             display.value = ""
         else:
             if current and (last_was_operator and button_text in operators):
-                # Don't add two operators right after each other
                 return
             elif current == "" and button_text in operators:
-                # First character cannot be an operator
                 return
             else:
                 new_text = current + button_text
@@ -47,8 +90,8 @@ def main(page: ft.Page):
         text = display.value
         if text:
             try:
-                solution = str(eval(display.value))
-                display.value = solution
+                result = calculate_expression(text)
+                display.value = str(result)
             except:
                 display.value = "Error"
         page.update()
@@ -84,8 +127,8 @@ def main(page: ft.Page):
         width=300,
         height=70,
         on_click=on_equals,
-    bgcolor=ft.Colors.BLUE,
-    color=ft.Colors.WHITE,
+        bgcolor=ft.colors.BLUE,
+        color=ft.colors.WHITE,
     )
     
     # Main layout
